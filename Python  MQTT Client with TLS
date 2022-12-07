@@ -1,0 +1,47 @@
+#This client runs with Mosquitto broker in your local machine
+import paho.mqtt.client as paho
+import time
+
+broker = "DESKTOP-5P4204T" # your desktop name
+port=8885
+user="test"
+password="test"
+conn_flag= False
+def on_connect(client, userdata, flags, rc):
+    global conn_flag
+    conn_flag=True
+    if rc==0:
+        print("user and password OK")
+    else:
+        print("Bad connection Returned code=",rc)
+    print("connected",conn_flag)
+    conn_flag=True
+def on_log(client, userdata, level, buf):
+    print("buffer", buf)
+def on_disconnect(client, userdata, rc):
+    print("client disconnected ok")
+    
+client1= paho.Client("python1")
+client1.username_pw_set(user,password=password)
+client1.on_log=on_log
+#Configures the o client for SSL/TLS support with certificates
+client1.tls_set('C:\etc\mosquitto\localhostcert\ca.crt','C:\etc\mosquitto\localhostcert\server.crt','C:\etc\mosquitto\localhostcert\server.key')
+client1.on_connect = on_connect
+client1.on_disconnect = on_disconnect
+client1.connect(broker,port)
+client1.subscribe("Topic_test")
+while not conn_flag:
+    time.sleep(1)
+    print("waiting", conn_flag)
+    client1.loop()
+time.sleep(3)
+
+i = 0
+while True:
+        if i<1: #defines how many messages will be published
+                
+                client1.publish("Topic_test","test", 0, False)
+                i =i+1;
+        
+        else:
+            client1.disconnect() # disconnect
